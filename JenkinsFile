@@ -1,0 +1,46 @@
+pipeline{
+  agent {
+    kubernetes {
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          labels:
+            label: jenkins-podman-builder
+        spec:
+          serviceAccountName: podman-scc-sa
+          containers:
+          - name: podman-builder
+            image: image-registry.openshift-image-registry.svc:5000/podman/podman-builder:latest
+            securityContext:
+              capabilities:
+                add:
+                - "SETUID"
+                - "SETGID"
+            command:
+            - /bin/sh
+            - '-c'
+            - /entrypoint.sh cat
+            tty: true
+            env:
+              - name: HOME
+                value: /home/jenkins/agent
+      '''
+    }
+  }
+
+  stages{
+    stage('Build Container Image') {
+      steps {
+        container('podman-builder'){
+          sh 'podman info'
+          sh"""
+          echo "FROM registry.access.redhat.com/ubi9/ubi-minimal\nRUN echo ok" > Containerfile
+          """
+          sh 'podman build -f Containerfile -t firstImage'
+          sh 'podman images'
+        }
+      }
+    }
+  } // stages
+} // pipeline

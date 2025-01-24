@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: podman-rootful
+spec:
+ containers:
+   - name: rootful
+     image: 'image-registry.openshift-image-registry.svc:5000/podman/podman-builder:latest'
+     args:
+       - sleep
+       - "1000000"
+     securityContext:
+       privileged: true

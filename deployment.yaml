@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: podman-builder
+  namespace: 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: podman-builder
+  template:
+    metadata:
+      labels:
+        app: podman-builder
+    spec:
+      containers:
+        - name: container
+          image: 'image-registry.openshift-image-registry.svc:5000/podman/podman-builder:latest'
+          command:
+            - /bin/sh
+            - '-c'
+            - /entrypoint.sh cat
+          tty : true
+          imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              add:
+              - "SETUID"
+              - "SETGID"
+      serviceAccountName: podman-scc-sa
+      restartPolicy: Always
